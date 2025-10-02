@@ -1,0 +1,24 @@
+{
+  "name": "@nano-banana/backend",
+  "version": "1.0.0",
+  "description": "Nano-Banana AI绘图应用后端 - Flask API",
+  "private": true,
+  "scripts": {
+    "dev": "python -m flask --app app run --debug --host=0.0.0.0 --port=5000",
+    "start": "python -m gunicorn --bind 0.0.0.0:5000 'app:create_app()'",
+    "init-db": "python -m flask --app app init-db",
+    "test": "python -m pytest",
+    "test-coverage": "python -m pytest --cov=app --cov-report=html",
+    "lint": "python -m flake8 app tests",
+    "format": "python -m black app tests",
+    "type-check": "python -m mypy app",
+    "clean": "find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true"
+  },
+  "keywords": [
+    "flask",
+    "api",
+    "python",
+    "ai",
+    "image-generation"
+  ]
+}

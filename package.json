@@ -1,0 +1,48 @@
+{
+  "name": "nano-banana-app",
+  "version": "1.0.0",
+  "description": "Nano-Banana AI绘图应用 - 基于Vue.js和Flask的全栈AI图片生成平台",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "build": "npm run build --workspace=apps/frontend",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "test": "npm run test --workspaces",
+    "test:frontend": "npm run test --workspace=apps/frontend",
+    "test:backend": "npm run test --workspace=apps/backend",
+    "test:e2e": "npm run test:e2e --workspace=apps/frontend",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces",
+    "clean": "npm run clean --workspaces --if-present",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "sass-embedded": "^1.93.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/nano-banana-app.git"
+  },
+  "keywords": [
+    "ai",
+    "image-generation",
+    "nano-banana",
+    "vue",
+    "flask",
+    "typescript",
+    "python"
+  ],
+  "author": "",
+  "license": "MIT"
+}

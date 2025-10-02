@@ -1,0 +1,25 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": [
+    "env.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+    "../../packages/shared-types/src/**/*"
+  ],
+  "exclude": [
+    "src/**/__tests__/*"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared": ["../../packages/shared-types/src/index"],
+      "@shared/*": ["../../packages/shared-types/src/*"]
+    },
+    "types": [
+      "vite/client",
+      "vitest/globals"
+    ]
+  }
+}

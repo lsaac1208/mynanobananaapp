@@ -1,0 +1,25 @@
+{
+  "name": "@nano-banana/shared-types",
+  "version": "1.0.0",
+  "description": "Nano-Banana应用共享TypeScript类型定义",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "shared"
+  ],
+  "files": [
+    "dist/**/*",
+    "src/**/*"
+  ],
+  "devDependencies": {
+    "typescript": "~5.4.5"
+  }
+}
