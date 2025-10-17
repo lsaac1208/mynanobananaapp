@@ -18,8 +18,9 @@ export interface GenerationParams {
   negative_prompt?: string
 }
 
-export interface ImageToImageParams extends GenerationParams {
-  image: string
+export interface ImageToImageParams extends Omit<GenerationParams, 'num_images'> {
+  image?: string
+  images?: File[]
   strength?: number
 }
 
@@ -53,12 +54,12 @@ export const useGenerateStore = defineStore('generate', () => {
 
   const loadAvailableOptions = async () => {
     try {
-      const response = await generateApi.getModels()
-      if (response.data.success) {
-        availableModels.value = response.data.models || []
-        availableSizes.value = response.data.sizes || []
-        }
-      } catch (error) {
+      const response = await generateApi.getAvailableModels()
+      if (response.success) {
+        availableModels.value = response.models || []
+        availableSizes.value = response.sizes || []
+      }
+    } catch (error) {
       console.error('Failed to load available options:', error)
     }
   }
@@ -119,9 +120,9 @@ export const useGenerateStore = defineStore('generate', () => {
     try {
       const response = await generateApi.textToImage(params)
       
-      if (response.data.success && response.data.images) {
-        const newImages: GeneratedImage[] = response.data.images.map((url: string) => ({
-          url,
+      if (response.success && response.images) {
+        const newImages: GeneratedImage[] = response.images.map((img: any) => ({
+          url: typeof img === 'string' ? img : img.url,
           prompt: params.prompt,
           model: params.model,
           size: params.size,
@@ -130,9 +131,9 @@ export const useGenerateStore = defineStore('generate', () => {
         
         generatedImages.value = [...newImages, ...generatedImages.value]
         stopProgress()
-        return response.data
-        } else {
-        throw new Error(response.data.error || '生成失败')
+        return response
+      } else {
+        throw new Error(response.error || '生成失败')
       }
     } catch (error) {
       stopProgress()
@@ -144,11 +145,11 @@ export const useGenerateStore = defineStore('generate', () => {
     startProgress('image-to-image')
     
     try {
-      const response = await generateApi.imageToImage(params)
+      const response = await generateApi.imageToImage(params as any)
       
-      if (response.data.success && response.data.images) {
-        const newImages: GeneratedImage[] = response.data.images.map((url: string) => ({
-          url,
+      if (response.success && response.images) {
+        const newImages: GeneratedImage[] = response.images.map((img: any) => ({
+          url: typeof img === 'string' ? img : img.url,
           prompt: params.prompt,
           model: params.model,
           size: params.size,
@@ -157,11 +158,11 @@ export const useGenerateStore = defineStore('generate', () => {
         
         generatedImages.value = [...newImages, ...generatedImages.value]
         stopProgress()
-        return response.data
+        return response
       } else {
-        throw new Error(response.data.error || '生成失败')
+        throw new Error(response.error || '生成失败')
       }
-      } catch (error) {
+    } catch (error) {
       stopProgress()
       throw error
     }

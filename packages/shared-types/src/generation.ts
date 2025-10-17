@@ -28,7 +28,7 @@ export interface GeneratedImage {
 export interface GenerateResponse {
   success: boolean;
   images?: GeneratedImage[];
-  creations?: import('./creation').Creation[];
+  creations?: import('./gallery').Creation[];
   generation_time?: number;
   model_used?: string;
   prompt?: string;

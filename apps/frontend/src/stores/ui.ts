@@ -157,7 +157,7 @@ export const useUIStore = defineStore('ui', {
       this.notifications.push(newNotification)
 
       // 自动移除非持久化通知
-      if (!notification.persistent && newNotification.duration > 0) {
+      if (!notification.persistent && newNotification.duration && newNotification.duration > 0) {
         setTimeout(() => {
           this.removeNotification(id)
         }, newNotification.duration)

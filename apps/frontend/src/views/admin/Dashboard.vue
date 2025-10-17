@@ -282,9 +282,9 @@ const userBehaviorData = reactive({
   current_active_sessions: 0
 })
 
-const popularActions = ref([])
-const dailyStats = ref([])
-const systemInsights = reactive({
+const popularActions = ref<any[]>([])
+const dailyStats = ref<any[]>([])
+const systemInsights = reactive<any>({
   performance: null,
   user_stats: null,
   insights: [],
@@ -457,7 +457,7 @@ const getPriorityText = (priority: string) => {
 }
 
 const getActionDisplayName = (actionType: string) => {
-  const actionNames = {
+  const actionNames: Record<string, string> = {
     'login': '用户登录',
     'generate': '图片生成',
     'view_gallery': '查看画廊',

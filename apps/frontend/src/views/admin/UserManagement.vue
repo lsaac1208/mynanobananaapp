@@ -422,29 +422,29 @@ import { adminApi } from '@/services/api'
 const refreshing = ref(false)
 const searching = ref(false)
 const searchQuery = ref('')
-const searchResults = ref([])
-const allUsers = ref([])
+const searchResults = ref<any[]>([])
+const allUsers = ref<any[]>([])
 const loadingAllUsers = ref(false)
-const selectedUser = ref(null)
-const userStats = ref(null)
+const selectedUser = ref<any>(null)
+const userStats = ref<any>(null)
 const loadingUserDetails = ref(false)
-const userCreations = ref([])
+const userCreations = ref<any[]>([])
 const loadingUserCreations = ref(false)
 
 // 充值相关
 const addCreditsDialogVisible = ref(false)
-const targetUser = ref(null)
+const targetUser = ref<any>(null)
 const addingCredits = ref(false)
 const creditsFormRef = ref<FormInstance>()
 
 // 用户详情对话框
 const userDetailsDialogVisible = ref(false)
-const detailUser = ref(null)
-const detailUserStats = ref(null)
+const detailUser = ref<any>(null)
+const detailUserStats = ref<any>(null)
 const loadingDetailUser = ref(false)
 
 // 表单数据
-const creditsForm = reactive({
+const creditsForm = reactive<{ credits: number | null; description: string }>({
   credits: null,
   description: ''
 })
@@ -457,7 +457,7 @@ const creditsRules: FormRules = {
 }
 
 // 搜索防抖定时器
-let searchDebounceTimer: NodeJS.Timeout | null = null
+let searchDebounceTimer: number | null = null
 
 // 初始化组件
 onMounted(() => {

@@ -269,7 +269,7 @@ const imageViewerVisible = ref(false)
 const currentImage = ref<Creation | null>(null)
 
 // 防抖搜索
-let searchTimeout: NodeJS.Timeout
+let searchTimeout: number | undefined
 
 // 滚动容器引用（用于无限滚动）
 const galleryContent = ref<HTMLElement | null>(null)

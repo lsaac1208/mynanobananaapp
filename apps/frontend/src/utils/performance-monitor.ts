@@ -189,7 +189,7 @@ class PerformanceMonitor {
       let clsValue = 0
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          const layoutShift = entry as LayoutShift
+          const layoutShift = entry as any
           if (!layoutShift.hadRecentInput) {
             clsValue += layoutShift.value
           }
@@ -344,12 +344,12 @@ export type { PerformanceMetric }
 // 全局错误处理
 window.addEventListener('error', (event) => {
   console.error('Global error:', event.error)
-  perfMonitor.recordMetric('error', 1)
+  perfMonitor['recordMetric']('error', 1)
 })
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason)
-  perfMonitor.recordMetric('promise-rejection', 1)
+  perfMonitor['recordMetric']('promise-rejection', 1)
 })
 
 // 页面卸载时发送剩余指标
