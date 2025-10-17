@@ -20,10 +20,10 @@ class Config:
     OPENAI_HK_API_KEY = os.environ.get('OPENAI_HK_API_KEY')
     OPENAI_HK_BASE_URL = 'https://api.openai-hk.com'
 
-    # CORS配置（修复：支持前端实际端口）
+    # CORS配置（硬编码生产域名）
     CORS_ORIGINS = os.environ.get(
         'CORS_ORIGINS',
-        'http://localhost:3001,http://localhost:3000'
+        'http://nanobanana.100yse.com,https://nanobanana.100yse.com,http://106.14.160.150,http://localhost:3001,http://localhost:3000'
     ).split(',')
 
     # 上传配置
