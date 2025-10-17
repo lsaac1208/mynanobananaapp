@@ -637,7 +637,7 @@ const confirmAddCredits = async () => {
 
     addingCredits.value = true
 
-    const response = await adminApi.addCredits(targetUser.value.email, creditsForm.credits)
+    const response = await adminApi.addCredits(targetUser.value.email, creditsForm.credits!)
 
     if (response.success) {
       ElNotification({
@@ -647,19 +647,19 @@ const confirmAddCredits = async () => {
       })
 
       // 更新用户信息
-      if (selectedUser.value && selectedUser.value.id === targetUser.value.id) {
+      if (selectedUser.value && selectedUser.value.id === targetUser.value.id && response.data) {
         selectedUser.value.credits = response.data.new_credits
       }
 
       // 更新搜索结果中的用户信息
       const searchUserIndex = searchResults.value.findIndex(u => u.id === targetUser.value.id)
-      if (searchUserIndex !== -1) {
+      if (searchUserIndex !== -1 && response.data) {
         searchResults.value[searchUserIndex].credits = response.data.new_credits
       }
 
       // 更新所有用户列表中的用户信息
       const allUserIndex = allUsers.value.findIndex(u => u.id === targetUser.value.id)
-      if (allUserIndex !== -1) {
+      if (allUserIndex !== -1 && response.data) {
         allUsers.value[allUserIndex].credits = response.data.new_credits
       }
 

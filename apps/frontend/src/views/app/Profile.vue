@@ -39,7 +39,7 @@
         </div>
         <div class="detail-content">
           <div class="detail-label">最后登录</div>
-          <div class="detail-value">{{ formatDate(userStore.user?.last_login_at) }}</div>
+          <div class="detail-value">{{ userStore.user?.last_login_at ? formatDate(userStore.user.last_login_at) : '从未登录' }}</div>
         </div>
       </div>
     </el-card>
