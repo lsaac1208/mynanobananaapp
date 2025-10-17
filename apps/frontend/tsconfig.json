@@ -3,8 +3,7 @@
   "include": [
     "env.d.ts",
     "src/**/*",
-    "src/**/*.vue",
-    "../../packages/shared-types/src/**/*"
+    "src/**/*.vue"
   ],
   "exclude": [
     "src/**/__tests__/*"
@@ -12,6 +11,7 @@
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"],
       "@shared": ["../../packages/shared-types/src/index"],
