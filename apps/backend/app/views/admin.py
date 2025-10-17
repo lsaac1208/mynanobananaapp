@@ -20,7 +20,7 @@ admin_bp = Blueprint('admin', __name__)
 def add_credits():
     """管理员为用户添加次数"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取请求参数
         data = request.get_json()
@@ -100,7 +100,7 @@ def add_credits():
 def search_users():
     """搜索用户 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取搜索参数
         query = request.args.get('q', '').strip()
@@ -156,7 +156,7 @@ def search_users():
 def get_user_details(user_id):
     """获取用户详细信息 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取用户信息
         user = User.get_by_id(user_id)
@@ -197,7 +197,7 @@ def get_user_details(user_id):
 def get_settings():
     """获取所有系统配置 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取所有配置（加密字段自动脱敏）
         settings = SystemSettings.get_all(mask_encrypted=True)
@@ -221,7 +221,7 @@ def get_settings():
 def update_settings():
     """更新系统配置 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取请求数据
         data = request.get_json()
@@ -313,7 +313,7 @@ def update_settings():
 def test_api_connection():
     """测试API连接 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取请求数据（可选，可以测试新配置而不保存）
         data = request.get_json() or {}
@@ -401,7 +401,7 @@ def test_api_connection():
 def get_all_settings():
     """获取所有系统配置（包括隐藏的配置项）- 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取所有配置（加密字段自动脱敏）
         from app.database import get_db
@@ -449,7 +449,7 @@ def get_all_settings():
 def update_single_setting(key):
     """更新单个配置项 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 验证配置键名
         if not key:
@@ -528,7 +528,7 @@ def update_single_setting(key):
 def create_setting():
     """创建新的配置项 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取请求数据
         data = request.get_json()
@@ -602,7 +602,7 @@ def create_setting():
 def delete_setting(key):
     """删除单个配置项 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 验证配置键名
         if not key:
@@ -658,7 +658,7 @@ def delete_user(user_id):
     - 审计日志：记录删除操作和影响范围
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 防止管理员删除自己
         if current_user_id == user_id:
@@ -773,7 +773,7 @@ def create_config_group():
     }
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         data = request.get_json()
 
         # Input validation
@@ -858,7 +858,7 @@ def update_config_group(config_id):
     Update existing API configuration group
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # Verify config exists
         existing = config_repo.get_by_id(config_id)
@@ -938,7 +938,7 @@ def delete_config_group(config_id):
     Delete API configuration group
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # Verify config exists
         existing = config_repo.get_by_id(config_id)
@@ -986,7 +986,7 @@ def toggle_config_group(config_id):
     Toggle configuration group activation status
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # Verify config exists
         existing = config_repo.get_by_id(config_id)

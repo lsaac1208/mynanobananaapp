@@ -108,9 +108,9 @@ def register():
         if user_id is None:
             return jsonify({'error': '邮箱已被注册'}), 409
 
-        # 生成JWT令牌
-        access_token = create_access_token(identity=user_id)
-        refresh_token = create_refresh_token(identity=user_id)
+        # 生成JWT令牌（identity必须是字符串）
+        access_token = create_access_token(identity=str(user_id))
+        refresh_token = create_refresh_token(identity=str(user_id))
 
         # 获取用户信息和角色
         user = User.get_by_id(user_id)
@@ -195,9 +195,9 @@ def login():
         record_login_attempt(email, True)
         User.update_login_info(user['id'], success=True)
 
-        # 生成JWT令牌
-        access_token = create_access_token(identity=user['id'])
-        refresh_token = create_refresh_token(identity=user['id'])
+        # 生成JWT令牌（identity必须是字符串）
+        access_token = create_access_token(identity=str(user['id']))
+        refresh_token = create_refresh_token(identity=str(user['id']))
 
         # 获取用户角色
         from app.utils.permissions import get_user_roles
@@ -257,7 +257,7 @@ def logout():
 def refresh():
     """刷新访问令牌"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 检查用户是否仍然存在且激活
         from app.database import User
@@ -266,8 +266,8 @@ def refresh():
         if not user or not user['is_active']:
             return jsonify({'error': '用户不存在或已被禁用'}), 401
 
-        # 生成新的访问令牌
-        new_access_token = create_access_token(identity=current_user_id)
+        # 生成新的访问令牌（identity必须是字符串）
+        new_access_token = create_access_token(identity=str(current_user_id))
 
         return jsonify({
             'access_token': new_access_token
@@ -283,7 +283,7 @@ def refresh():
 def check_token():
     """检查令牌有效性"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取用户信息
         from app.database import User
@@ -323,7 +323,7 @@ def check_token():
 def get_my_permissions():
     """获取当前用户的权限列表"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取用户信息
         from app.database import User
@@ -355,7 +355,7 @@ def get_my_permissions():
 def get_all_roles():
     """获取所有角色列表（仅管理员）"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 检查管理员权限
         from app.utils.permissions import has_role

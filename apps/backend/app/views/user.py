@@ -12,7 +12,7 @@ user_bp = Blueprint('user', __name__)
 def get_current_user():
     """获取当前用户信息"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取用户信息
         from app.database import User
@@ -42,7 +42,7 @@ def get_current_user():
 def get_user_credits():
     """获取用户次数"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取用户信息
         from app.database import User

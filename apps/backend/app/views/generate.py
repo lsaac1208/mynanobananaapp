@@ -42,7 +42,7 @@ def generate_text_to_image():
     """文生图接口"""
     try:
         # 获取当前用户
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         from app.database import User
         user = User.get_by_id(current_user_id)
         if not user:
@@ -144,7 +144,7 @@ def generate_image_to_image():
     """图生图接口（支持多图）"""
     try:
         # 获取当前用户
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         from app.database import User
         user = User.get_by_id(current_user_id)
         if not user:
@@ -257,7 +257,7 @@ def generate_image_to_image():
 def get_user_gallery():
     """获取用户作品画廊（支持筛选和搜索）"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取分页参数
         page = int(request.args.get('page', 1))
@@ -311,7 +311,7 @@ def get_user_gallery():
 def delete_creation(creation_id):
     """删除用户作品"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 删除作品（仅限作品所有者）
         from app.database import Creation
@@ -341,7 +341,7 @@ def delete_creation(creation_id):
 def toggle_favorite(creation_id):
     """切换作品收藏状态"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         data = request.get_json()
         is_favorite = data.get('is_favorite', False)
 
@@ -372,7 +372,7 @@ def toggle_favorite(creation_id):
 def update_creation_tags(creation_id):
     """更新作品标签"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         data = request.get_json()
         tags = data.get('tags', '')
 
@@ -403,7 +403,7 @@ def update_creation_tags(creation_id):
 def update_creation_category(creation_id):
     """更新作品分类"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         data = request.get_json()
         category = data.get('category', 'general')
 
@@ -435,7 +435,7 @@ def update_creation_category(creation_id):
 def get_user_categories():
     """获取用户使用过的分类"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         from app.database import Creation
         categories = Creation.get_available_categories(current_user_id)
@@ -459,7 +459,7 @@ def get_user_categories():
 def get_user_tags():
     """获取用户常用标签"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         limit = int(request.args.get('limit', 20))
 
         from app.database import Creation
@@ -484,7 +484,7 @@ def get_user_tags():
 def get_user_gallery_stats():
     """获取用户画廊统计信息"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         from app.database import Creation
         stats = Creation.get_user_stats(current_user_id)
@@ -510,7 +510,7 @@ def proxy_image():
     用于从外部URL获取图片并返回给前端，避免CORS限制
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         data = request.get_json()
 
         if not data or 'image_url' not in data:
@@ -605,7 +605,7 @@ def proxy_image():
 def get_performance_analytics():
     """获取系统性能分析数据"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取时间范围参数
         hours = int(request.args.get('hours', 24))  # 默认24小时
@@ -646,7 +646,7 @@ def get_performance_analytics():
 def get_user_behavior_analytics():
     """获取用户行为分析数据"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         from app.database import UserBehavior, UserSession
 
@@ -732,7 +732,7 @@ def get_system_insights():
     """获取系统综合洞察"""
     try:
         from app.database import PerformanceMetric, UserSession, Creation
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取综合性能指标
         performance_data = {

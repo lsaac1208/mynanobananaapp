@@ -25,7 +25,7 @@ def get_encryption_key():
 def get_all_config_groups():
     """获取所有配置组 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取所有配置组及其配置项
         db = get_db()
@@ -83,7 +83,7 @@ def get_all_config_groups():
 def create_config_group():
     """创建新的配置组 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取请求数据
         data = request.get_json()
@@ -180,7 +180,7 @@ def create_config_group():
 def toggle_config_group(group_id):
     """切换配置组启用/禁用状态 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         db = get_db()
 
@@ -233,7 +233,7 @@ def toggle_config_group(group_id):
 def delete_config_group(group_id):
     """删除配置组 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         db = get_db()
 
@@ -281,7 +281,7 @@ def delete_config_group(group_id):
 def update_config_group(group_id):
     """更新配置组 - 管理员功能"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
 
         # 获取请求数据
         data = request.get_json()

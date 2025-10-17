@@ -9,6 +9,18 @@ from app.database import get_db
 from app.utils.response import APIResponse
 
 
+def get_current_user_id() -> int:
+    """
+    获取当前JWT认证用户的ID（整数类型）
+    Flask-JWT-Extended identity现在是字符串，需要转换为整数
+    """
+    user_id_str = get_jwt_identity()
+    try:
+        return int(user_id_str) if user_id_str else None
+    except (ValueError, TypeError):
+        return None
+
+
 def get_user_roles(user_id: int) -> list:
     """
     获取用户的所有角色
@@ -107,7 +119,7 @@ def require_role(*role_names):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             verify_jwt_in_request()
-            user_id = get_jwt_identity()
+            user_id = int(get_jwt_identity())
 
             # 检查用户是否拥有任一指定角色
             for role_name in role_names:
@@ -144,7 +156,7 @@ def require_permission(*permission_names):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             verify_jwt_in_request()
-            user_id = get_jwt_identity()
+            user_id = int(get_jwt_identity())
 
             # 检查用户是否拥有任一指定权限
             user_permissions = get_user_permissions(user_id)
@@ -178,7 +190,7 @@ def require_all_permissions(*permission_names):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             verify_jwt_in_request()
-            user_id = get_jwt_identity()
+            user_id = int(get_jwt_identity())
 
             # 检查用户是否拥有所有指定权限
             user_permissions = get_user_permissions(user_id)
@@ -211,9 +223,10 @@ def load_user_context():
     """
     try:
         verify_jwt_in_request(optional=True)
-        user_id = get_jwt_identity()
+        user_id_str = get_jwt_identity()
 
-        if user_id:
+        if user_id_str:
+            user_id = int(user_id_str)
             g.user_id = user_id
             g.user_roles = get_user_roles(user_id)
             g.user_permissions = get_user_permissions(user_id)
