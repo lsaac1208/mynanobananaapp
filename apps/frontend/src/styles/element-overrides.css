@@ -1,0 +1,386 @@
+/**
+ * Element Plus 组件样式覆盖
+ * 优化表单输入组件的视觉体验和交互
+ */
+
+/* ========================================
+ * 输入框增强 (Input Enhancement)
+ * ======================================== */
+
+.el-input__wrapper {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--color-gray-300);
+  transition: all var(--transition-fast);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background-color: var(--bg-primary);
+}
+
+.el-input__wrapper:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.el-input__wrapper.is-focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.el-input__inner {
+  font-size: 16px; /* 防止iOS自动缩放 */
+  color: var(--text-primary);
+}
+
+/* 禁用状态 */
+.el-input.is-disabled .el-input__wrapper {
+  background-color: var(--bg-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ========================================
+ * Textarea增强 (Textarea Enhancement)
+ * ======================================== */
+
+.el-textarea__inner {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--color-gray-300);
+  font-size: 16px !important; /* 防止iOS缩放 */
+  line-height: 1.6;
+  transition: all var(--transition-fast);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+.el-textarea__inner:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.el-textarea__inner:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+  outline: none;
+}
+
+/* ========================================
+ * 按钮增强 (Button Enhancement)
+ * ======================================== */
+
+.el-button {
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.el-button--primary {
+  background: var(--color-primary-gradient);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.el-button--primary:active {
+  transform: translateY(0);
+}
+
+/* 按钮加载状态 */
+.el-button.is-loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+/* ========================================
+ * Select选择器增强 (Select Enhancement)
+ * ======================================== */
+
+.el-select .el-input__wrapper {
+  cursor: pointer;
+}
+
+.el-select-dropdown {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+}
+
+.el-select-dropdown__item {
+  font-size: 15px;
+  padding: 10px 16px;
+  transition: background-color var(--transition-fast);
+}
+
+.el-select-dropdown__item:hover {
+  background-color: rgba(102, 126, 234, 0.08);
+}
+
+.el-select-dropdown__item.is-selected {
+  background-color: rgba(102, 126, 234, 0.12);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ========================================
+ * Radio & Checkbox增强
+ * ======================================== */
+
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.el-radio__label,
+.el-checkbox__label {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+/* ========================================
+ * Form表单增强 (Form Enhancement)
+ * ======================================== */
+
+.el-form-item__label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.el-form-item__error {
+  font-size: 13px;
+  color: var(--color-danger);
+  padding-top: 4px;
+}
+
+.el-form-item.is-error .el-input__wrapper,
+.el-form-item.is-error .el-textarea__inner {
+  border-color: var(--color-danger);
+}
+
+.el-form-item.is-error .el-input__wrapper:focus,
+.el-form-item.is-error .el-textarea__inner:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+/* ========================================
+ * Card卡片增强 (Card Enhancement)
+ * ======================================== */
+
+.el-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.el-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.el-card__header {
+  border-bottom: 1px solid var(--border-color);
+  padding: 18px 20px;
+  font-weight: var(--font-weight-semibold);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.el-card__body {
+  padding: 20px;
+}
+
+/* ========================================
+ * Dialog对话框增强 (Dialog Enhancement)
+ * ======================================== */
+
+.el-dialog {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+}
+
+.el-dialog__header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.el-dialog__title {
+  font-size: 20px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.el-dialog__body {
+  padding: 24px;
+  color: var(--text-primary);
+}
+
+.el-overlay {
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+ * Message消息提示增强
+ * ======================================== */
+
+.el-message {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  padding: 12px 16px;
+}
+
+.el-message--success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--color-success);
+}
+
+.el-message--warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: var(--color-warning);
+}
+
+.el-message--error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-danger);
+}
+
+.el-message--info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: var(--color-info);
+}
+
+/* ========================================
+ * Tag标签增强 (Tag Enhancement)
+ * ======================================== */
+
+.el-tag {
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  border: 1px solid transparent;
+}
+
+.el-tag--primary {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: var(--color-primary);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.el-tag--success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.el-tag--info {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--text-secondary);
+  border-color: rgba(107, 114, 128, 0.2);
+}
+
+/* ========================================
+ * 移动端优化 (Mobile Optimization)
+ * ======================================== */
+
+@media (max-width: 768px) {
+  .el-button {
+    min-height: 44px; /* 最小触摸目标 - Apple HIG */
+    font-size: 16px;
+    padding: 12px 20px;
+  }
+  
+  .el-input__inner {
+    font-size: 16px !important; /* 防止iOS自动缩放 */
+    height: 44px;
+  }
+  
+  .el-textarea__inner {
+    font-size: 16px !important;
+    min-height: 88px; /* 至少2行的触摸友好高度 */
+  }
+  
+  .el-select-dropdown__item {
+    min-height: 44px;
+    line-height: 44px;
+  }
+  
+  .el-dialog {
+    width: 90% !important;
+    margin-top: 5vh !important;
+  }
+  
+  .el-card__body {
+    padding: 16px;
+  }
+}
+
+/* 横屏优化 */
+@media (max-height: 600px) and (orientation: landscape) {
+  .el-dialog {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* ========================================
+ * 暗色模式适配 (Dark Mode)
+ * ======================================== */
+
+[data-theme="dark"] .el-input__wrapper,
+[data-theme="dark"] .el-textarea__inner {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .el-select-dropdown {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .el-select-dropdown__item:hover {
+  background-color: rgba(102, 126, 234, 0.15);
+}
+
+[data-theme="dark"] .el-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .el-dialog {
+  background-color: var(--bg-secondary);
+}
+
+/* ========================================
+ * 无障碍优化 (Accessibility)
+ * ======================================== */
+
+/* 焦点可见性 */
+.el-input__wrapper:focus-within,
+.el-textarea__inner:focus,
+.el-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 减少动画偏好设置 */
+@media (prefers-reduced-motion: reduce) {
+  .el-input__wrapper,
+  .el-textarea__inner,
+  .el-button,
+  .el-card {
+    transition: none;
+  }
+}
+

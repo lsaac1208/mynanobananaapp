@@ -1,5 +1,8 @@
 <template>
   <div class="gallery-container">
+    <!-- 动态渐变背景 -->
+    <AnimatedBackground />
+    
     <!-- 页面标题和统计信息 -->
     <div class="gallery-header">
       <h1 class="gallery-title">我的作品画廊</h1>
@@ -66,7 +69,7 @@
     </div>
 
     <!-- 作品展示区域 -->
-    <div class="gallery-content" v-loading="loading">
+    <div class="gallery-content" ref="galleryContent" v-loading="loading">
       <div v-if="creations.length > 0" class="creation-grid">
         <div
           v-for="creation in creations"
@@ -78,11 +81,16 @@
             <div class="image-container">
               <el-image
                 :src="creation.image_url"
-                fit="contain"
+                fit="cover"
                 class="creation-image"
                 @click="viewImage(creation)"
                 loading="lazy"
               >
+                <template #placeholder>
+                  <div class="image-skeleton">
+                    <el-skeleton-item variant="image" style="width: 100%; height: 100%;" />
+                  </div>
+                </template>
                 <template #error>
                   <div class="image-error">
                     <el-icon><Picture /></el-icon>
@@ -114,6 +122,14 @@
                   circle
                   size="small"
                   @click.stop="downloadImage(creation)"
+                />
+                <el-button
+                  type="danger"
+                  :icon="Delete"
+                  circle
+                  size="small"
+                  @click.stop="deleteCreation(creation)"
+                  title="删除作品"
                 />
               </div>
             </div>
@@ -148,17 +164,15 @@
       </el-empty>
     </div>
 
-    <!-- 分页 -->
-    <div class="pagination-container" v-if="creations.length > 0">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[12, 24, 36, 48]"
-        :total="totalCount"
-        layout="total, sizes, prev, pager, next"
-        @size-change="handlePageSizeChange"
-        @current-change="handlePageChange"
-      />
+    <!-- 无限滚动加载提示 -->
+    <div class="infinite-scroll-status" v-if="creations.length > 0">
+      <div v-if="isLoadingMore" class="loading-more">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>正在加载更多...</span>
+      </div>
+      <div v-else-if="!hasMore" class="no-more">
+        <span>已加载全部 {{ totalCount }} 张作品</span>
+      </div>
     </div>
 
     <!-- 图片查看器 -->
@@ -220,12 +234,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Picture, Star, StarFilled, Download, MagicStick } from '@element-plus/icons-vue'
+import { Search, Picture, Star, StarFilled, Download, MagicStick, Delete, Loading } from '@element-plus/icons-vue'
+import { useInfiniteScroll } from '@vueuse/core'
 import { galleryApi } from '@/services/api'
 import type { Creation, GalleryStats, GalleryFilters } from '@shared/index'
+import AnimatedBackground from '@/components/common/AnimatedBackground.vue'
 
 // 路由
 const router = useRouter()
@@ -241,10 +257,12 @@ const searchKeyword = ref('')
 const selectedCategory = ref<string>('all')
 const showFavoritesOnly = ref(false)
 
-// 分页
+// 分页（改为无限滚动模式）
 const currentPage = ref(1)
-const pageSize = ref(12)
+const pageSize = ref(24) // 每次加载更多
 const totalCount = ref(0)
+const hasMore = ref(true) // 是否还有更多数据
+const isLoadingMore = ref(false) // 是否正在加载更多
 
 // 图片查看器
 const imageViewerVisible = ref(false)
@@ -253,9 +271,17 @@ const currentImage = ref<Creation | null>(null)
 // 防抖搜索
 let searchTimeout: NodeJS.Timeout
 
-// 加载画廊数据
-const loadGallery = async () => {
-  loading.value = true
+// 滚动容器引用（用于无限滚动）
+const galleryContent = ref<HTMLElement | null>(null)
+
+// 加载画廊数据（支持无限滚动）
+const loadGallery = async (append: boolean = false) => {
+  if (append) {
+    isLoadingMore.value = true
+  } else {
+    loading.value = true
+  }
+  
   try {
     const filters: GalleryFilters = {
       page: currentPage.value,
@@ -277,9 +303,21 @@ const loadGallery = async () => {
     const response = await galleryApi.getCreations(filters)
 
     if (response.success) {
-      creations.value = response.creations || []
+      const newCreations = response.creations || []
+      
+      if (append) {
+        // 无限滚动模式：追加数据
+        creations.value.push(...newCreations)
+      } else {
+        // 初始加载或筛选：替换数据
+        creations.value = newCreations
+      }
+      
       stats.value = response.stats
       totalCount.value = response.stats?.total || 0
+      
+      // 检查是否还有更多数据
+      hasMore.value = creations.value.length < totalCount.value
     } else {
       ElMessage.error(response.error || '加载画廊失败')
     }
@@ -288,7 +326,18 @@ const loadGallery = async () => {
     ElMessage.error('加载画廊失败')
   } finally {
     loading.value = false
+    isLoadingMore.value = false
   }
+}
+
+// 加载更多数据（无限滚动）
+const loadMore = async () => {
+  if (isLoadingMore.value || loading.value || !hasMore.value) {
+    return
+  }
+  
+  currentPage.value++
+  await loadGallery(true)
 }
 
 // 搜索处理
@@ -296,6 +345,8 @@ const handleSearch = () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
     currentPage.value = 1
+    creations.value = [] // 清空现有数据
+    hasMore.value = true
     loadGallery()
   }, 500)
 }
@@ -303,18 +354,8 @@ const handleSearch = () => {
 // 筛选处理
 const handleFilter = () => {
   currentPage.value = 1
-  loadGallery()
-}
-
-// 分页处理
-const handlePageChange = (page: number) => {
-  currentPage.value = page
-  loadGallery()
-}
-
-const handlePageSizeChange = (size: number) => {
-  pageSize.value = size
-  currentPage.value = 1
+  creations.value = [] // 清空现有数据
+  hasMore.value = true
   loadGallery()
 }
 
@@ -322,20 +363,34 @@ const handlePageSizeChange = (size: number) => {
 const toggleFavorite = async (creation: Creation) => {
   try {
     const newFavoriteStatus = !creation.is_favorite
-    // 这里应该调用API更新收藏状态
-    // const response = await galleryApi.updateFavorite(creation.id, newFavoriteStatus)
-
-    // 临时更新本地状态
-    creation.is_favorite = newFavoriteStatus
-    ElMessage.success(newFavoriteStatus ? '已添加到收藏' : '已取消收藏')
-
-    // 如果当前在收藏筛选模式下，且取消收藏，则从列表中移除
-    if (showFavoritesOnly.value && !newFavoriteStatus) {
-      loadGallery()
+    
+    // 直接调用API更新收藏状态
+    const response = await galleryApi.updateFavorite(creation.id, newFavoriteStatus)
+    
+    if (response.success) {
+      // 更新本地状态
+      creation.is_favorite = newFavoriteStatus
+      ElMessage.success(newFavoriteStatus ? '已添加到收藏' : '已取消收藏')
+      
+      // 更新统计数据
+      if (stats.value) {
+        if (newFavoriteStatus) {
+          stats.value.favorites = (stats.value.favorites || 0) + 1
+        } else {
+          stats.value.favorites = Math.max(0, (stats.value.favorites || 0) - 1)
+        }
+      }
+      
+      // 如果当前在收藏筛选模式下，且取消收藏，则刷新列表
+      if (showFavoritesOnly.value && !newFavoriteStatus) {
+        await loadGallery()
+      }
+    } else {
+      ElMessage.error(response.error || '收藏操作失败')
     }
   } catch (error) {
     console.error('Toggle favorite error:', error)
-    ElMessage.error('操作失败')
+    ElMessage.error('操作失败，请稍后重试')
   }
 }
 
@@ -389,6 +444,59 @@ const downloadImage = async (creation: Creation) => {
   }
 }
 
+// 删除作品
+const deleteCreation = async (creation: Creation) => {
+  try {
+    // 二次确认对话框
+    await ElMessageBox.confirm(
+      '确定要删除这张作品吗？此操作无法撤销。',
+      '确认删除',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+    )
+
+    // 调用 API 删除作品
+    const response = await galleryApi.deleteCreation(creation.id)
+
+    if (response.success) {
+      ElMessage.success('作品已删除')
+      
+      // 从本地状态移除作品
+      const index = creations.value.findIndex(c => c.id === creation.id)
+      if (index > -1) {
+        creations.value.splice(index, 1)
+      }
+      
+      // 更新统计数据
+      if (stats.value) {
+        stats.value.total--
+        // 如果是收藏作品，同时减少收藏数
+        if (creation.is_favorite && stats.value.favorites) {
+          stats.value.favorites--
+        }
+      }
+      
+      // 如果删除后当前页面为空且不是第一页，返回上一页
+      if (creations.value.length === 0 && currentPage.value > 1) {
+        currentPage.value--
+        await loadGallery()
+      }
+    } else {
+      ElMessage.error(response.error || '删除失败，请稍后重试')
+    }
+  } catch (error) {
+    // 用户取消删除操作，不做任何提示
+    if (error !== 'cancel') {
+      console.error('删除作品失败:', error)
+      ElMessage.error('删除失败，请稍后重试')
+    }
+  }
+}
+
 // 格式化日期
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -400,9 +508,18 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// 组件挂载时加载数据
+// 组件挂载时加载数据并设置无限滚动
 onMounted(() => {
   loadGallery()
+  
+  // 设置无限滚动
+  if (galleryContent.value) {
+    useInfiniteScroll(
+      galleryContent.value,
+      loadMore,
+      { distance: 300 } // 距离底部 300px 时触发加载
+    )
+  }
 })
 </script>
 
@@ -495,14 +612,21 @@ onMounted(() => {
   min-height: 400px;
 }
 
+/* 瀑布流布局 - CSS Column实现 */
 .creation-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  column-count: 3;
+  column-gap: var(--spacing-lg);
 }
 
 .creation-card {
+  /* 防止卡片被拆分到多列 */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin-bottom: var(--spacing-lg);
   transition: transform 0.3s ease;
+  display: inline-block;
+  width: 100%;
 }
 
 .creation-card:hover {
@@ -510,8 +634,43 @@ onMounted(() => {
 }
 
 .image-card {
+  position: relative;
   border-radius: 12px;
   overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border: 1px solid var(--glass-border);
+  box-shadow: 
+    0 8px 32px 0 rgba(102, 126, 234, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 渐变遮罩层 */
+.image-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.1), 
+    rgba(118, 75, 162, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.image-card:hover::before {
+  opacity: 1;
+}
+
+.image-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 0 40px rgba(102, 126, 234, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.7) inset;
 }
 
 .image-container {
@@ -521,21 +680,55 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
-  max-height: 300px;
+  height: 280px;
 }
 
 .creation-image {
   width: 100%;
-  height: auto;
-  max-height: 300px;
+  height: 100%;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: block;
+  object-fit: cover;
+  image-rendering: -webkit-optimize-contrast;
 }
 
-.creation-image:hover {
-  transform: scale(1.02);
+/* 图片加载淡入动画 */
+.creation-image :deep(img) {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 骨架屏样式 */
+.image-skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+/* 图片悬停缩放和滤镜效果 */
+.image-card:hover .creation-image {
+  transform: scale(1.08);
+  filter: brightness(1.05) contrast(1.05) saturate(1.15);
 }
 
 .image-error {
@@ -553,18 +746,28 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 
+/* 毛玻璃操作栏 */
 .image-overlay {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
 }
 
 .image-container:hover .image-overlay {
-  opacity: 1;
+  transform: translateY(0);
 }
 
 .image-overlay .el-button {
@@ -581,6 +784,45 @@ onMounted(() => {
 .image-overlay .el-button--success:hover {
   background: rgba(103, 194, 58, 1);
   transform: scale(1.1);
+}
+
+/* 删除按钮样式 (danger) */
+.image-overlay .el-button--danger {
+  background: rgba(245, 108, 108, 0.9);
+  color: white;
+  border: none;
+}
+
+.image-overlay .el-button--danger:hover {
+  background: rgba(245, 108, 108, 1);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(245, 108, 108, 0.4);
+}
+
+/* 下载按钮样式 (primary) */
+.image-overlay .el-button--primary {
+  background: rgba(64, 158, 255, 0.9);
+  color: white;
+  border: none;
+}
+
+.image-overlay .el-button--primary:hover {
+  background: rgba(64, 158, 255, 1);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+}
+
+/* 收藏按钮样式 (info) */
+.image-overlay .el-button--info {
+  background: rgba(144, 147, 153, 0.9);
+  color: white;
+  border: none;
+}
+
+.image-overlay .el-button--info:hover {
+  background: rgba(144, 147, 153, 1);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(144, 147, 153, 0.4);
 }
 
 .card-content {
@@ -615,12 +857,35 @@ onMounted(() => {
   margin: 60px 0;
 }
 
-/* 分页 */
-.pagination-container {
+/* 无限滚动状态 */
+.infinite-scroll-status {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
-  padding: 20px 0;
+  align-items: center;
+  padding: 40px 20px;
+  margin-top: 20px;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #409eff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loading-more .el-icon {
+  font-size: 18px;
+}
+
+.no-more {
+  color: #909399;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+  border-top: 1px dashed #e4e7ed;
+  width: 100%;
 }
 
 /* 图片查看器 */
@@ -798,8 +1063,8 @@ onMounted(() => {
   }
 
   .creation-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
+    column-count: 2;
+    column-gap: var(--spacing-md);
   }
 
   .image-card {
@@ -807,12 +1072,7 @@ onMounted(() => {
   }
 
   .image-container {
-    min-height: 180px;
-    max-height: 280px;
-  }
-
-  .creation-image {
-    max-height: 280px;
+    height: 240px;
   }
 
   .viewer-image-wrapper {
@@ -838,15 +1098,26 @@ onMounted(() => {
   }
 
   .image-overlay {
+    position: absolute;
     top: 8px;
     right: 8px;
+    bottom: auto;
+    left: auto;
     gap: 6px;
+    transform: translateY(0) !important;
+    flex-direction: column;
+    padding: 8px;
+    background: transparent;
+    backdrop-filter: none;
+    border: none;
   }
 
   .image-overlay .el-button {
     width: 36px;
     height: 36px;
     min-height: 36px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   .card-content {
@@ -878,9 +1149,9 @@ onMounted(() => {
     padding: 0 32px;
   }
 
-  .pagination-container {
-    margin-top: 30px;
-    padding: 16px 0;
+  .infinite-scroll-status {
+    padding: 30px 16px;
+    margin-top: 16px;
   }
 }
 
@@ -929,29 +1200,26 @@ onMounted(() => {
   }
 
   .creation-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    column-count: 1;
+    column-gap: 0;
   }
 
   .image-container {
-    min-height: 200px;
-    max-height: 320px;
-  }
-
-  .creation-image {
-    max-height: 320px;
+    height: 300px;
   }
 
   .image-overlay {
     top: 6px;
     right: 6px;
     gap: 4px;
+    transform: translateY(0) !important;
   }
 
   .image-overlay .el-button {
     width: 32px;
     height: 32px;
     min-height: 32px;
+    padding: 0;
   }
 
   .card-content {
@@ -982,9 +1250,9 @@ onMounted(() => {
     border-radius: 22px;
   }
 
-  .pagination-container {
-    margin-top: 20px;
-    padding: 12px 0;
+  .infinite-scroll-status {
+    padding: 20px 12px;
+    margin-top: 12px;
   }
 }
 
@@ -1014,12 +1282,7 @@ onMounted(() => {
   }
 
   .image-container {
-    min-height: 180px;
-    max-height: 280px;
-  }
-
-  .creation-image {
-    max-height: 280px;
+    height: 260px;
   }
 
   .card-content {
@@ -1061,16 +1324,12 @@ onMounted(() => {
   }
 
   .creation-grid {
-    gap: 8px;
+    column-count: 1;
+    column-gap: 0;
   }
 
   .image-container {
-    min-height: 120px;
-    max-height: 200px;
-  }
-
-  .creation-image {
-    max-height: 200px;
+    height: 180px;
   }
 
   .card-content {
@@ -1091,12 +1350,12 @@ onMounted(() => {
   }
 
   .creation-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    column-count: 4;
+    column-gap: var(--spacing-xl);
   }
 
-  .creation-image {
-    height: 240px;
+  .image-container {
+    height: 300px;
   }
 }
 </style>

@@ -1,341 +1,209 @@
-/**
- * AI生成状态管理
- */
 import { defineStore } from 'pinia'
-import type {
-  GenerateTextToImageRequest,
-  GenerateImageToImageRequest,
-  GeneratedImage,
-  GenerateResponse
-} from '@shared/index'
-import { generateApi } from '../services/api'
-import { useAuthStore } from './auth'
-import { useGalleryStore } from './gallery'
+import { ref, computed } from 'vue'
+import { generateApi } from '@/services/api'
 
-type GenerateMode = 'text-to-image' | 'image-to-image'
-
-interface GenerateState {
-  // 生成模式
-  mode: GenerateMode
-
-  // 加载状态
-  generating: boolean
-
-  // 可用选项
-  availableModels: string[]
-  availableSizes: string[]
-
-  // 生成结果
-  generatedImages: GeneratedImage[]
-  lastGenerationTime: number | null
-
-  // 表单数据
-  textToImageForm: GenerateTextToImageRequest
-  imageToImageForm: Omit<GenerateImageToImageRequest, 'image'> & { image: File | null }
-
-  // 错误信息
-  error: string | null
-
-  // 历史记录
-  generationHistory: GenerateResponse[]
+export interface GeneratedImage {
+  url: string
+  prompt: string
+  model: string
+  size: string
+  createdAt: Date
 }
 
-export const useGenerateStore = defineStore('generate', {
-  state: (): GenerateState => ({
-    mode: 'text-to-image',
-    generating: false,
-    availableModels: ['nano-banana', 'nano-banana-hd'],
-    availableSizes: ['1x1', '3x4', '4x3', '16x9'],
-    generatedImages: [],
-    lastGenerationTime: null,
-    textToImageForm: {
-      prompt: '',
-      model: 'nano-banana',
-      size: '4x3',
-      n: 1
-    },
-    imageToImageForm: {
-      prompt: '',
-      image: null,
-      model: 'nano-banana',
-      size: '4x3',
-      n: 1
-    },
-    error: null,
-    generationHistory: []
-  }),
+export interface GenerationParams {
+  prompt: string
+  model: string
+  size: string
+  num_images?: number
+  negative_prompt?: string
+}
 
-  getters: {
-    // 当前模式是否为文生图
-    isTextToImage: (state) => state.mode === 'text-to-image',
+export interface ImageToImageParams extends GenerationParams {
+  image: string
+  strength?: number
+}
 
-    // 当前模式是否为图生图
-    isImageToImage: (state) => state.mode === 'image-to-image',
+export type GenerateMode = 'text-to-image' | 'image-to-image'
 
-    // 是否可以生成（表单验证）
-    canGenerate: (state) => {
-      const authStore = useAuthStore()
+export const useGenerateStore = defineStore('generate', () => {
+  // State
+  const generateMode = ref<GenerateMode>('text-to-image')
+  const generating = ref(false)
+  const generationProgress = ref(0)
+  const estimatedTime = ref(0)
+  const elapsedTime = ref(0)
+  const currentStage = ref('')
+  const generatedImages = ref<GeneratedImage[]>([])
+  const availableModels = ref<string[]>([])
+  const availableSizes = ref<string[]>([])
+  
+  // Progress tracking
+  let progressTimer: number | null = null
+  let progressStartTime: number = 0
 
-      // 检查用户次数
-      if (!authStore.user || authStore.user.credits <= 0) {
-        return false
+  // Computed
+  const hasGeneratedImages = computed(() => generatedImages.value.length > 0)
+  const remainingTime = computed(() => Math.max(0, estimatedTime.value - elapsedTime.value))
+  const progressPercentage = computed(() => Math.min(100, generationProgress.value))
+
+  // Actions
+  const setMode = (mode: GenerateMode) => {
+    generateMode.value = mode
+  }
+
+  const loadAvailableOptions = async () => {
+    try {
+      const response = await generateApi.getModels()
+      if (response.data.success) {
+        availableModels.value = response.data.models || []
+        availableSizes.value = response.data.sizes || []
+        }
+      } catch (error) {
+      console.error('Failed to load available options:', error)
+    }
+  }
+
+  const startProgress = (mode: GenerateMode) => {
+    generating.value = true
+    generationProgress.value = 0
+    elapsedTime.value = 0
+    progressStartTime = Date.now()
+    
+    // Estimate time based on mode
+    estimatedTime.value = mode === 'text-to-image' ? 15 : 20
+    
+    // Set initial stage
+    currentStage.value = '正在连接AI服务...'
+    
+    // Start progress simulation
+    progressTimer = window.setInterval(() => {
+      elapsedTime.value = Math.floor((Date.now() - progressStartTime) / 1000)
+      
+      // Simulate progress
+      if (generationProgress.value < 30) {
+        generationProgress.value += 2
+        currentStage.value = '正在处理提示词...'
+      } else if (generationProgress.value < 60) {
+        generationProgress.value += 1.5
+        currentStage.value = '正在生成图像...'
+      } else if (generationProgress.value < 90) {
+        generationProgress.value += 1
+        currentStage.value = '正在优化细节...'
+      } else if (generationProgress.value < 95) {
+        generationProgress.value += 0.5
+        currentStage.value = '即将完成...'
       }
+    }, 500)
+  }
 
-      // 检查表单完整性
-      if (state.mode === 'text-to-image') {
-        return state.textToImageForm.prompt.trim().length > 0
+  const stopProgress = () => {
+    if (progressTimer) {
+      clearInterval(progressTimer)
+      progressTimer = null
+    }
+    generationProgress.value = 100
+    currentStage.value = '生成完成！'
+    
+    // Reset after a short delay
+    setTimeout(() => {
+      generating.value = false
+      generationProgress.value = 0
+      elapsedTime.value = 0
+      currentStage.value = ''
+    }, 1000)
+  }
+
+  const generateTextToImage = async (params: GenerationParams) => {
+    startProgress('text-to-image')
+    
+    try {
+      const response = await generateApi.textToImage(params)
+      
+      if (response.data.success && response.data.images) {
+        const newImages: GeneratedImage[] = response.data.images.map((url: string) => ({
+          url,
+          prompt: params.prompt,
+          model: params.model,
+          size: params.size,
+          createdAt: new Date()
+        }))
+        
+        generatedImages.value = [...newImages, ...generatedImages.value]
+        stopProgress()
+        return response.data
+        } else {
+        throw new Error(response.data.error || '生成失败')
+      }
+    } catch (error) {
+      stopProgress()
+      throw error
+    }
+  }
+
+  const generateImageToImage = async (params: ImageToImageParams) => {
+    startProgress('image-to-image')
+    
+    try {
+      const response = await generateApi.imageToImage(params)
+      
+      if (response.data.success && response.data.images) {
+        const newImages: GeneratedImage[] = response.data.images.map((url: string) => ({
+          url,
+          prompt: params.prompt,
+          model: params.model,
+          size: params.size,
+          createdAt: new Date()
+        }))
+        
+        generatedImages.value = [...newImages, ...generatedImages.value]
+        stopProgress()
+        return response.data
       } else {
-        return state.imageToImageForm.prompt.trim().length > 0 && state.imageToImageForm.image !== null
+        throw new Error(response.data.error || '生成失败')
       }
-    },
-
-    // 获取当前表单数据
-    currentForm: (state) => {
-      return state.mode === 'text-to-image' ? state.textToImageForm : state.imageToImageForm
-    },
-
-    // 生成历史统计
-    historyStats: (state) => {
-      const total = state.generationHistory.length
-      const successful = state.generationHistory.filter(h => h.success).length
-      const failed = total - successful
-
-      return { total, successful, failed }
-    },
-
-    // 最后一次生成信息
-    lastGeneration: (state) => {
-      return state.generationHistory[0] || null
-    }
-  },
-
-  actions: {
-    // 设置生成模式
-    setMode(mode: GenerateMode) {
-      this.mode = mode
-      this.clearError()
-    },
-
-    // 加载可用模型和尺寸
-    async loadAvailableOptions() {
-      try {
-        const response = await generateApi.getAvailableModels()
-        if (response.success) {
-          this.availableModels = response.models
-          this.availableSizes = response.sizes
-        }
       } catch (error) {
-        console.error('加载可用选项失败:', error)
-      }
-    },
-
-    // 文生图
-    async generateTextToImage() {
-      if (!this.canGenerate || this.generating) {
-        return { success: false, error: '无法生成图片' }
-      }
-
-      this.generating = true
-      this.clearError()
-
-      try {
-        const response = await generateApi.textToImage(this.textToImageForm)
-
-        if (response.success && response.images) {
-          this.generatedImages = response.images
-          this.lastGenerationTime = response.generation_time || null
-
-          // 更新用户次数
-          const authStore = useAuthStore()
-          if (authStore.user && response.remaining_credits !== undefined) {
-            authStore.user.credits = response.remaining_credits
-          }
-
-          // 添加到历史记录
-          this.addToHistory(response)
-
-          // 如果有作品创建，添加到画廊
-          if (response.images.length > 0) {
-            this.addToGallery(response)
-          }
-        } else {
-          this.error = response.error || '生成失败'
-        }
-
-        return response
-      } catch (error: any) {
-        const errorMessage = error.response?.data?.error || '生成失败，请稍后重试'
-        this.error = errorMessage
-
-        return {
-          success: false,
-          error: errorMessage
-        }
-      } finally {
-        this.generating = false
-      }
-    },
-
-    // 图生图
-    async generateImageToImage() {
-      if (!this.canGenerate || this.generating || !this.imageToImageForm.image) {
-        return { success: false, error: '无法生成图片' }
-      }
-
-      this.generating = true
-      this.clearError()
-
-      try {
-        const requestData: GenerateImageToImageRequest = {
-          prompt: this.imageToImageForm.prompt,
-          image: this.imageToImageForm.image,
-          model: this.imageToImageForm.model,
-          size: this.imageToImageForm.size,
-          n: this.imageToImageForm.n
-        }
-
-        const response = await generateApi.imageToImage(requestData)
-
-        if (response.success && response.images) {
-          this.generatedImages = response.images
-          this.lastGenerationTime = response.generation_time || null
-
-          // 更新用户次数
-          const authStore = useAuthStore()
-          if (authStore.user && response.remaining_credits !== undefined) {
-            authStore.user.credits = response.remaining_credits
-          }
-
-          // 添加到历史记录
-          this.addToHistory(response)
-
-          // 如果有作品创建，添加到画廊
-          if (response.images.length > 0) {
-            this.addToGallery(response)
-          }
-        } else {
-          this.error = response.error || '生成失败'
-        }
-
-        return response
-      } catch (error: any) {
-        const errorMessage = error.response?.data?.error || '生成失败，请稍后重试'
-        this.error = errorMessage
-
-        return {
-          success: false,
-          error: errorMessage
-        }
-      } finally {
-        this.generating = false
-      }
-    },
-
-    // 设置上传的图片
-    setUploadedImage(file: File) {
-      this.imageToImageForm.image = file
-    },
-
-    // 移除上传的图片
-    removeUploadedImage() {
-      this.imageToImageForm.image = null
-    },
-
-    // 更新文生图表单
-    updateTextToImageForm(updates: Partial<GenerateTextToImageRequest>) {
-      this.textToImageForm = { ...this.textToImageForm, ...updates }
-    },
-
-    // 更新图生图表单
-    updateImageToImageForm(updates: Partial<Omit<GenerateImageToImageRequest, 'image'>>) {
-      this.imageToImageForm = { ...this.imageToImageForm, ...updates }
-    },
-
-    // 重置表单
-    resetForm() {
-      this.textToImageForm = {
-        prompt: '',
-        model: 'nano-banana',
-        size: '4x3',
-        n: 1
-      }
-
-      this.imageToImageForm = {
-        prompt: '',
-        image: null,
-        model: 'nano-banana',
-        size: '4x3',
-        n: 1
-      }
-
-      this.clearError()
-    },
-
-    // 清除错误
-    clearError() {
-      this.error = null
-    },
-
-    // 清除生成结果
-    clearResults() {
-      this.generatedImages = []
-      this.lastGenerationTime = null
-      this.clearError()
-    },
-
-    // 添加到历史记录
-    addToHistory(response: GenerateResponse) {
-      this.generationHistory.unshift(response)
-
-      // 限制历史记录数量
-      if (this.generationHistory.length > 50) {
-        this.generationHistory = this.generationHistory.slice(0, 50)
-      }
-    },
-
-    // 添加到画廊（模拟，实际由后端处理）
-    addToGallery(response: GenerateResponse) {
-      const galleryStore = useGalleryStore()
-
-      // 这里只是通知画廊刷新，实际的作品添加由后端自动处理
-      // 在真实场景中，生成成功后后端会自动保存到数据库
-      setTimeout(() => {
-        galleryStore.refresh()
-      }, 1000)
-    },
-
-    // 下载图片
-    async downloadImage(imageUrl: string, filename?: string) {
-      try {
-        const response = await fetch(imageUrl)
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-
-        const link = document.createElement('a')
-        link.href = url
-        link.download = filename || `generated-image-${Date.now()}.png`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        window.URL.revokeObjectURL(url)
-
-        return { success: true }
-      } catch (error) {
-        console.error('下载图片失败:', error)
-        return { success: false, error: '下载失败' }
-      }
-    },
-
-    // 重置状态
-    reset() {
-      this.mode = 'text-to-image'
-      this.generating = false
-      this.generatedImages = []
-      this.lastGenerationTime = null
-      this.error = null
-      this.generationHistory = []
-      this.resetForm()
+      stopProgress()
+      throw error
     }
+  }
+
+  const clearGeneratedImages = () => {
+    generatedImages.value = []
+  }
+
+  const removeGeneratedImage = (index: number) => {
+    generatedImages.value.splice(index, 1)
+  }
+
+  const cancelGeneration = () => {
+    stopProgress()
+    currentStage.value = '已取消'
+  }
+
+  return {
+    // State
+    generateMode,
+    generating,
+    generationProgress,
+    estimatedTime,
+    elapsedTime,
+    currentStage,
+    generatedImages,
+    availableModels,
+    availableSizes,
+    
+    // Computed
+    hasGeneratedImages,
+    remainingTime,
+    progressPercentage,
+    
+    // Actions
+    setMode,
+    loadAvailableOptions,
+    generateTextToImage,
+    generateImageToImage,
+    clearGeneratedImages,
+    removeGeneratedImage,
+    cancelGeneration
   }
 })

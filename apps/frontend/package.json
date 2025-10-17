@@ -17,11 +17,13 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@vueuse/core": "^13.9.0",
     "axios": "^1.7.2",
     "element-plus": "^2.7.3",
     "pinia": "^2.1.7",
     "vue": "^3.4.27",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "vue3-virtual-scroller": "^0.2.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.1",

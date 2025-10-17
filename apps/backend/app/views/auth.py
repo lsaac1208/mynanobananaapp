@@ -12,6 +12,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt
 )
+from app.middleware.rate_limiter import rate_limit
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -73,6 +74,7 @@ def record_login_attempt(email, success):
 
 
 @auth_bp.route('/register', methods=['POST'])
+@rate_limit('register')
 def register():
     """用户注册"""
     try:
@@ -146,6 +148,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['POST'])
+@rate_limit('login')
 def login():
     """用户登录"""
     try:

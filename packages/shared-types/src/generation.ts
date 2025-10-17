@@ -12,14 +12,16 @@ export interface GenerateTextToImageRequest {
 
 export interface GenerateImageToImageRequest {
   prompt: string;
-  image: File;
   model?: string;
+  images?: File[];  // 新增：支持多图
+  image?: File;     // 保留：向后兼容
   size?: string;
   n?: number;
 }
 
 export interface GeneratedImage {
   url: string;
+  thumbnailUrl?: string;  // 缩略图URL（base64，前端生成）
   revised_prompt?: string;
 }
 

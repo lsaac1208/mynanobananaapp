@@ -1,101 +1,86 @@
 <template>
   <div class="home">
-    <el-container class="home-container">
-      <el-header class="home-header">
-        <div class="container">
-          <div class="flex justify-between items-center">
+    <!-- 导航头部 -->
+    <header class="home-header">
+      <div class="header-container">
+        <div class="header-content">
             <h1 class="logo">
               <el-icon><PictureFilled /></el-icon>
-              Nano-Banana AI
+            <span class="logo-text">Nano-Banana AI</span>
             </h1>
             <UserInfo />
           </div>
         </div>
-      </el-header>
+    </header>
 
-      <el-main class="home-main">
-        <div class="container">
-          <div class="hero-section text-center">
-            <h1 class="hero-title">AI创意无限，灵感即刻生成</h1>
-            <p class="hero-subtitle">
-              使用先进的nano-banana模型，轻松将您的创意转化为精美图片
+    <!-- 主要内容 -->
+    <main class="home-main">
+      <!-- 英雄区 -->
+      <HeroSection />
+      
+      <!-- 功能展示区 -->
+      <FeaturesSection />
+      
+      <!-- CTA区 -->
+      <CTASection />
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="home-footer">
+      <div class="footer-container">
+        <div class="footer-content">
+          <div class="footer-info">
+            <h3 class="footer-logo">
+              <el-icon><PictureFilled /></el-icon>
+              Nano-Banana AI
+            </h3>
+            <p class="footer-description">
+              让每个人都能轻松创造精美的AI艺术作品
             </p>
-            <div class="hero-buttons mt-8">
-              <el-button
-                type="primary"
-                size="large"
-                @click="handleStartCreate"
-              >
-                开始创作
-              </el-button>
-              <el-button
-                v-if="!authStore.isLoggedIn"
-                size="large"
-                @click="$router.push('/login')"
-              >
-                立即登录
-              </el-button>
-              <el-button
-                v-else
-                size="large"
-                @click="$router.push('/app')"
-              >
-                进入应用
-              </el-button>
-            </div>
           </div>
 
-          <div class="features-section">
-            <el-row :gutter="32">
-              <el-col :xs="24" :md="8">
-                <div class="feature-card">
-                  <el-icon class="feature-icon"><EditPen /></el-icon>
-                  <h3>文生图</h3>
-                  <p>输入文字描述，AI为您生成精美图片</p>
+          <div class="footer-links">
+            <div class="link-group">
+              <h4>产品</h4>
+              <a href="/app/generate">文生图</a>
+              <a href="/app/generate">图生图</a>
+              <a href="/app/gallery">我的画廊</a>
                 </div>
-              </el-col>
-              <el-col :xs="24" :md="8">
-                <div class="feature-card">
-                  <el-icon class="feature-icon"><Picture /></el-icon>
-                  <h3>图生图</h3>
-                  <p>上传参考图片，基于您的创意进行再创作</p>
+            
+            <div class="link-group">
+              <h4>支持</h4>
+              <a href="#">帮助文档</a>
+              <a href="#">API文档</a>
+              <a href="#">常见问题</a>
                 </div>
-              </el-col>
-              <el-col :xs="24" :md="8">
-                <div class="feature-card">
-                  <el-icon class="feature-icon"><FolderOpened /></el-icon>
-                  <h3>个人画廊</h3>
-                  <p>保存和管理您的所有创作作品</p>
+            
+            <div class="link-group">
+              <h4>关于</h4>
+              <a href="#">关于我们</a>
+              <a href="#">隐私政策</a>
+              <a href="#">服务条款</a>
                 </div>
-              </el-col>
-            </el-row>
           </div>
         </div>
-      </el-main>
-    </el-container>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 Nano-Banana AI. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { PictureFilled, EditPen, Picture, FolderOpened } from '@element-plus/icons-vue'
+import { PictureFilled } from '@element-plus/icons-vue'
 import UserInfo from '../components/UserInfo.vue'
+import HeroSection from '../components/home/HeroSection.vue'
+import FeaturesSection from '../components/home/FeaturesSection.vue'
+import CTASection from '../components/home/CTASection.vue'
 import { useAuthStore } from '@/stores/auth'
 
-const router = useRouter()
 const authStore = useAuthStore()
-
-// 处理开始创作按钮点击
-const handleStartCreate = () => {
-  if (authStore.isLoggedIn) {
-    // 已登录，直接跳转到应用页面
-    router.push('/app')
-  } else {
-    // 未登录，跳转到注册页面
-    router.push('/register')
-  }
-}
 
 // 初始化认证状态
 onMounted(async () => {
@@ -104,112 +89,226 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ========================================
+ * 页面容器
+ * ======================================== */
+
 .home {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
-.home-container {
-  min-height: 100vh;
-}
+/* ========================================
+ * 导航头部
+ * ======================================== */
 
 .home-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
-.auth-buttons {
-  gap: 0.5rem;
+.logo:hover {
+  transform: scale(1.05);
 }
 
-.home-main {
-  padding-top: 4rem;
-}
-
-.hero-section {
-  margin-bottom: 6rem;
-}
-
-.hero-title {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, #fff, #f0f8ff);
+.logo .el-icon {
+  font-size: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.hero-subtitle {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+.logo-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.hero-buttons {
-  gap: 1rem;
+/* ========================================
+ * 主内容区
+ * ======================================== */
+
+.home-main {
+  position: relative;
 }
 
-.features-section {
-  margin-top: 4rem;
+/* ========================================
+ * 页脚
+ * ======================================== */
+
+.home-footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-xl);
+  margin-top: var(--spacing-4xl);
 }
 
-.feature-card {
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--spacing-3xl);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.footer-info {
+  max-width: 400px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+}
+
+.footer-logo .el-icon {
+  font-size: 28px;
+  color: var(--color-primary);
+}
+
+.footer-description {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.footer-links {
+  display: contents;
+}
+
+.link-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.link-group h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.link-group a {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link-group a:hover {
+  color: var(--color-primary);
+}
+
+.footer-bottom {
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border-color);
   text-align: center;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 1rem;
-  transition: transform 0.3s ease;
 }
 
-.feature-card:hover {
-  transform: translateY(-5px);
+.footer-bottom p {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin: 0;
 }
 
-.feature-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: #ffd700;
-}
+/* ========================================
+ * 响应式设计
+ * ======================================== */
 
-.feature-card h3 {
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.feature-card p {
-  opacity: 0.9;
-  line-height: 1.6;
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-2xl);
+  }
+  
+  .footer-info {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
+  .header-content {
+    height: 64px;
   }
+  
+  .logo {
+    font-size: 20px;
+  }
+  
+  .logo .el-icon {
+    font-size: 28px;
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+  
+  .footer-info {
+    grid-column: 1;
+  }
+}
 
-  .hero-subtitle {
-    font-size: 1rem;
-  }
+/* ========================================
+ * 暗色模式
+ * ======================================== */
 
-  .auth-buttons {
-    flex-direction: column;
-  }
+[data-theme="dark"] .home-header {
+  background: rgba(26, 26, 29, 0.9);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .home-footer {
+  background: var(--bg-secondary);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .footer-bottom {
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 </style>

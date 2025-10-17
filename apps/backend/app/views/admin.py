@@ -279,6 +279,15 @@ def update_settings():
             else:
                 failed_items.append({'key': key, 'reason': '更新失败'})
 
+        # 如果有配置更新成功，清除 AI 生成服务的配置缓存
+        if updated_count > 0:
+            try:
+                from app.services.config_cache import ConfigCache
+                ConfigCache.invalidate()
+                current_app.logger.info("✅ AI配置缓存已清除")
+            except Exception as cache_error:
+                current_app.logger.warning(f"清除缓存失败: {str(cache_error)}")
+        
         current_app.logger.info(
             f"管理员 {current_user_id} 更新了 {updated_count} 个系统配置"
         )

@@ -1,0 +1,472 @@
+/**
+ * 移动端响应式优化
+ * 符合Apple Human Interface Guidelines和Material Design规范
+ */
+
+/* ========================================
+ * 移动端基础样式 (Mobile Base)
+ * ======================================== */
+
+@media (max-width: 768px) {
+  /* 触摸友好的按钮尺寸 */
+  .el-button {
+    min-height: 44px; /* Apple HIG最小触摸目标 */
+    font-size: 16px; /* 防止iOS自动缩放 */
+    padding: 12px 20px;
+  }
+  
+  /* 输入框优化 */
+  .el-input__inner {
+    font-size: 16px !important; /* 防止iOS自动缩放 */
+    min-height: 44px;
+    padding: 12px 15px;
+  }
+  
+  .el-textarea__inner {
+    font-size: 16px !important;
+    min-height: 88px; /* 至少2行的触摸友好高度 */
+    padding: 12px 15px;
+  }
+  
+  /* Select下拉选项 */
+  .el-select-dropdown__item {
+    min-height: 44px;
+    line-height: 44px;
+    padding: 0 16px;
+  }
+  
+  /* 间距调整 */
+  .generate-container,
+  .gallery-container {
+    padding: var(--spacing-md);
+  }
+  
+  /* 标题字体调整 */
+  h1 {
+    font-size: 28px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  h3 {
+    font-size: 20px;
+  }
+  
+  /* 卡片间距 */
+  .el-card {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .el-card__body {
+    padding: 16px;
+  }
+  
+  /* 对话框优化 */
+  .el-dialog {
+    width: 90% !important;
+    margin-top: 5vh !important;
+    border-radius: var(--radius-lg);
+  }
+  
+  .el-dialog__body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  /* 表单项间距 */
+  .el-form-item {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  /* 禁用悬停效果（触摸设备不需要） */
+  .no-hover-on-mobile:hover {
+    transform: none !important;
+  }
+}
+
+/* ========================================
+ * 小屏手机优化 (Small Phone - 375px)
+ * ======================================== */
+
+@media (max-width: 375px) {
+  /* iPhone SE等小屏设备 */
+  .generate-container,
+  .gallery-container {
+    padding: var(--spacing-sm);
+  }
+  
+  h1 {
+    font-size: 24px;
+  }
+  
+  h2 {
+    font-size: 20px;
+  }
+  
+  .el-button {
+    padding: 10px 16px;
+    font-size: 15px;
+  }
+  
+  .el-card__body {
+    padding: 12px;
+  }
+  
+  /* 减小字体避免换行 */
+  .el-form-item__label {
+    font-size: 13px;
+  }
+}
+
+/* ========================================
+ * 平板优化 (Tablet - 768px ~ 1024px)
+ * ======================================== */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .generate-container,
+  .gallery-container {
+    padding: var(--spacing-lg);
+    max-width: 100%;
+  }
+  
+  /* 适度增加触摸目标 */
+  .el-button {
+    min-height: 40px;
+    padding: 10px 18px;
+  }
+  
+  /* 两列布局 */
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ========================================
+ * 横屏模式优化 (Landscape)
+ * ======================================== */
+
+@media (max-height: 600px) and (orientation: landscape) {
+  /* 减小垂直间距 */
+  .hero-section,
+  .landing-section {
+    min-height: auto;
+    padding: var(--spacing-xl) 0;
+  }
+  
+  .el-dialog {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  
+  /* 隐藏较大的装饰元素 */
+  .animated-background {
+    opacity: 0.5;
+  }
+  
+  .gradient-orb {
+    display: none;
+  }
+  
+  /* 紧凑的页眉 */
+  .main-header {
+    height: 50px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}
+
+/* ========================================
+ * 安全区域适配 (Safe Area - iOS Notch)
+ * ======================================== */
+
+/* 顶部安全区域 */
+.main-header {
+  padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+}
+
+/* 底部安全区域 */
+.mobile-bottom-tabbar,
+.mobile-footer,
+.fixed-bottom-action {
+  padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+}
+
+/* 左右安全区域 */
+.container,
+.content-wrapper {
+  padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+  padding-right: max(var(--spacing-md), env(safe-area-inset-right));
+}
+
+/* ========================================
+ * 移动端画廊优化
+ * ======================================== */
+
+@media (max-width: 768px) {
+  /* 单列布局 */
+  .creation-grid {
+    column-count: 1 !important;
+    column-gap: 0;
+  }
+  
+  .creation-card {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  /* 图片容器优化 */
+  .image-container {
+    min-height: 200px;
+    max-height: 400px;
+  }
+  
+  .creation-image {
+    max-height: 400px;
+  }
+  
+  /* 操作按钮始终显示（不依赖hover） */
+  .image-overlay {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+  }
+  
+  /* 筛选栏优化 */
+  .filter-bar {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .filter-bar .el-input,
+  .filter-bar .el-select {
+    width: 100%;
+  }
+  
+  /* 统计卡片堆叠 */
+  .stats-cards {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .stat-card {
+    width: 100%;
+  }
+}
+
+/* ========================================
+ * 移动端生成页面优化
+ * ======================================== */
+
+@media (max-width: 768px) {
+  /* 模式选择器 */
+  .mode-selector .el-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .mode-selector .el-radio-button {
+    width: 100%;
+  }
+  
+  /* 表单优化 */
+  .generate-form .el-form-item {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  /* 模型和尺寸选择 */
+  .model-size-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .model-size-row .el-form-item {
+    width: 100%;
+  }
+  
+  /* 生成按钮固定在底部 */
+  .generate-button-wrapper {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    padding: var(--spacing-md);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+  
+  .generate-button-wrapper .el-button {
+    width: 100%;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  
+  /* 结果网格 */
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  /* 图片预览 */
+  .result-image-preview {
+    max-height: 400px;
+  }
+}
+
+/* ========================================
+ * 移动端导航优化
+ * ======================================== */
+
+@media (max-width: 768px) {
+  /* 汉堡菜单 */
+  .main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-xl);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+  
+  .main-menu.is-open {
+    transform: translateX(0);
+  }
+  
+  /* 遮罩层 */
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 999;
+  }
+  
+  .menu-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ========================================
+ * 大屏优化 (Desktop - >1200px)
+ * ======================================== */
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+  }
+  
+  /* 4列画廊布局 */
+  .creation-grid {
+    column-count: 4;
+    column-gap: var(--spacing-xl);
+  }
+  
+  /* 更大的图片 */
+  .creation-image {
+    max-height: 400px;
+  }
+}
+
+/* ========================================
+ * 超大屏优化 (Large Desktop - >1600px)
+ * ======================================== */
+
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1400px;
+  }
+  
+  .creation-grid {
+    column-count: 5;
+  }
+}
+
+/* ========================================
+ * 打印样式 (Print)
+ * ======================================== */
+
+@media print {
+  /* 隐藏不必要的元素 */
+  .main-header,
+  .main-menu,
+  .mobile-bottom-tabbar,
+  .animated-background,
+  .filter-bar,
+  .generate-button-wrapper,
+  .image-overlay,
+  button {
+    display: none !important;
+  }
+  
+  /* 优化打印布局 */
+  body {
+    background: white;
+  }
+  
+  .creation-grid {
+    column-count: 2;
+  }
+  
+  .creation-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* ========================================
+ * 无障碍优化 (Accessibility)
+ * ======================================== */
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .el-button,
+  .el-input__wrapper,
+  .el-card {
+    border-width: 2px;
+  }
+  
+  .text-secondary {
+    color: var(--text-primary);
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animated-background,
+  .gradient-orb,
+  .pulse-animation {
+    animation: none !important;
+  }
+}
+
+/* 触摸目标可视化（调试用） */
+@media (max-width: 768px) {
+  .debug-touch-targets * {
+    outline: 1px solid rgba(255, 0, 0, 0.2);
+  }
+  
+  .debug-touch-targets *:active {
+    outline: 2px solid rgba(255, 0, 0, 0.5);
+  }
+}
+

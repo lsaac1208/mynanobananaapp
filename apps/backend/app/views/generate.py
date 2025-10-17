@@ -6,11 +6,14 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.ai_generator import get_ai_generator_service
 from app.database import get_db
+from app.middleware.rate_limiter import rate_limit
+from app.middleware.response_cache import cache_response
 
 generate_bp = Blueprint('generate', __name__)
 
 
 @generate_bp.route('/generate/models', methods=['GET'])
+@cache_response(ttl=600, use_user_id=False, use_query_string=False)  # 10分钟缓存，所有用户共享
 def get_available_models():
     """获取可用的模型和尺寸"""
     try:
@@ -34,6 +37,7 @@ def get_available_models():
 
 @generate_bp.route('/generate/text-to-image', methods=['POST'])
 @jwt_required()
+@rate_limit('generate')
 def generate_text_to_image():
     """文生图接口"""
     try:
@@ -135,8 +139,9 @@ def generate_text_to_image():
 
 @generate_bp.route('/generate/image-to-image', methods=['POST'])
 @jwt_required()
+@rate_limit('generate')
 def generate_image_to_image():
-    """图生图接口"""
+    """图生图接口（支持多图）"""
     try:
         # 获取当前用户
         current_user_id = get_jwt_identity()
@@ -154,18 +159,24 @@ def generate_image_to_image():
         if not prompt or not prompt.strip():
             return jsonify({'error': 'Prompt is required'}), 400
 
-        # 获取上传的图片
-        if 'image' not in request.files:
-            return jsonify({'error': 'Image file is required'}), 400
-
-        image_file = request.files['image']
-        if image_file.filename == '':
-            return jsonify({'error': 'Image file is required'}), 400
+        # 获取多个图片文件
+        images = request.files.getlist('images[]') or request.files.getlist('images')
+        
+        # 向后兼容：如果没有多图，尝试获取单图
+        if not images and 'image' in request.files:
+            images = [request.files['image']]
+        
+        if not images:
+            return jsonify({'error': 'At least one image is required'}), 400
+        
+        if len(images) > 4:
+            return jsonify({'error': 'Maximum 4 images allowed'}), 400
 
         # 验证文件类型
         allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-        if image_file.content_type not in allowed_types:
-            return jsonify({'error': 'Invalid image format'}), 400
+        for image_file in images:
+            if image_file.content_type not in allowed_types:
+                return jsonify({'error': 'Invalid image format'}), 400
 
         # 预扣除次数
         if not User.consume_credits(current_user_id, 1):
@@ -174,10 +185,8 @@ def generate_image_to_image():
         # 准备生成参数
         generation_params = {
             'prompt': prompt.strip(),
-            'image': image_file,
-            'model': request.form.get('model', 'nano-banana'),
-            'size': request.form.get('size', '1x1'),
-            'n': min(int(request.form.get('n', 1)), 4)
+            'images': images,
+            'model': request.form.get('model', 'nano-banana')
         }
 
         # 调用AI服务生成图片
@@ -209,7 +218,7 @@ def generate_image_to_image():
                 prompt=generation_params['prompt'],
                 image_url=image['url'],
                 model_used=generation_params['model'],
-                size=generation_params['size'],
+                size='auto',  # 图生图不需要指定尺寸
                 generation_time=result.get('generation_time')
             )
             # 获取完整的创建对象
@@ -422,6 +431,7 @@ def update_creation_category(creation_id):
 
 @generate_bp.route('/gallery/categories', methods=['GET'])
 @jwt_required()
+@cache_response(ttl=300)  # 5分钟缓存
 def get_user_categories():
     """获取用户使用过的分类"""
     try:
@@ -445,6 +455,7 @@ def get_user_categories():
 
 @generate_bp.route('/gallery/tags', methods=['GET'])
 @jwt_required()
+@cache_response(ttl=300)  # 5分钟缓存
 def get_user_tags():
     """获取用户常用标签"""
     try:
@@ -469,6 +480,7 @@ def get_user_tags():
 
 @generate_bp.route('/gallery/stats', methods=['GET'])
 @jwt_required()
+@cache_response(ttl=120)  # 2分钟缓存，因为统计信息可能变化较频繁
 def get_user_gallery_stats():
     """获取用户画廊统计信息"""
     try:

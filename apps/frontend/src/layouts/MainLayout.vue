@@ -8,6 +8,29 @@
             <el-icon class="title-icon"><PictureFilled /></el-icon>
             Nano-Banana AI
           </h1>
+          
+          <!-- 横向选项卡导航 -->
+          <el-menu 
+            v-if="!isMobile"
+            mode="horizontal" 
+            :default-active="currentRoute" 
+            class="header-menu"
+            router
+            @select="handleMenuSelect"
+          >
+            <el-menu-item index="/app">
+              <el-icon><EditPen /></el-icon>
+              <span>AI生成</span>
+            </el-menu-item>
+            <el-menu-item index="/app/gallery">
+              <el-icon><FolderOpened /></el-icon>
+              <span>画廊</span>
+            </el-menu-item>
+            <el-menu-item index="/app/profile">
+              <el-icon><User /></el-icon>
+              <span>个人中心</span>
+            </el-menu-item>
+          </el-menu>
         </div>
         <div class="header-right">
           <UserInfo />
@@ -101,9 +124,9 @@ const mobileSidebarVisible = ref(false)
 // 当前路由
 const currentRoute = computed(() => route.path)
 
-// 响应式侧边栏宽度
+// 响应式侧边栏宽度（隐藏桌面端侧边栏）
 const sidebarWidth = computed(() => {
-  return isMobile.value ? '0px' : '240px'
+  return '0px' // 完全隐藏侧边栏，改用页眉选项卡
 })
 
 // 底部标签栏配置
@@ -185,10 +208,11 @@ onUnmounted(() => {
 }
 
 .main-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   height: 64px;
   padding: 0;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.15);
 }
 
 .header-content {
@@ -196,14 +220,16 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   height: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 32px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
+  gap: 48px;
+  flex: 1;
 }
 
 .app-title {
@@ -213,12 +239,51 @@ onUnmounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: white;
+  color: #2c3e50;
+  white-space: nowrap;
+}
+
+/* 页眉选项卡导航样式 */
+.header-menu {
+  background: transparent;
+  border: none;
+  flex: 1;
+  max-width: 600px;
+}
+
+.header-menu :deep(.el-menu-item) {
+  color: #606266;
+  border-bottom: 3px solid transparent;
+  padding: 0 24px;
+  font-weight: 500;
+  font-size: 15px;
+  height: 64px;
+  line-height: 64px;
+  transition: all 0.3s;
+}
+
+.header-menu :deep(.el-menu-item .el-icon) {
+  margin-right: 6px;
+  font-size: 18px;
+}
+
+.header-menu :deep(.el-menu-item:hover) {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+  border-bottom-color: rgba(102, 126, 234, 0.3);
+}
+
+.header-menu :deep(.el-menu-item.is-active) {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.12);
+  border-bottom-color: #667eea;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .title-icon {
   font-size: 24px;
-  color: #ffd700;
+  color: #667eea;
 }
 
 .header-right {
@@ -234,6 +299,7 @@ onUnmounted(() => {
   background: white;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: none; /* 隐藏侧边栏，改用页眉选项卡 */
 }
 
 .main-content {

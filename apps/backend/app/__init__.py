@@ -29,6 +29,10 @@ def create_app(config_name=None):
     from app.database import init_app
     init_app(app)
 
+    # 初始化性能日志中间件
+    from app.middleware.performance_logger import PerformanceLogger
+    PerformanceLogger.init_app(app)
+
     # JWT配置
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):

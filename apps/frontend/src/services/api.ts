@@ -1,6 +1,6 @@
 /**
  * API服务层
- * 移动端性能优化：添加HTTP缓存支持
+ * 移动端性能优化：添加HTTP缓存支持 + 请求去重
  */
 import axios from 'axios'
 import type {
@@ -21,6 +21,7 @@ import type {
   GalleryFilters
 } from '@shared/index'
 import { apiCache, generateCacheKey, withCache } from '../utils/cache'
+import { withDedup, generateDedupKey } from '../utils/request-dedup'
 
 // 创建axios实例
 const api = axios.create({
@@ -145,30 +146,56 @@ export const userApi = {
 
 // 生成API
 export const generateApi = {
-  // 文生图
+  // 文生图 - 带请求去重
   textToImage: async (params: GenerateTextToImageRequest): Promise<GenerateResponse> => {
-    const response = await api.post('/generate/text-to-image', params, {
-      timeout: 120000 // AI生成需要更长时间，设置120秒（2分钟）超时
+    // 生成去重key，基于主要参数
+    const dedupKey = generateDedupKey('text-to-image', {
+      prompt: params.prompt,
+      model: params.model,
+      size: params.size
     })
-    return response.data
+    
+    return withDedup(dedupKey, async () => {
+      const response = await api.post('/generate/text-to-image', params, {
+        timeout: 120000 // AI生成需要更长时间，设置120秒（2分钟）超时
+      })
+      return response.data
+    })
   },
 
-  // 图生图
+  // 图生图 - 带请求去重，支持多图
   imageToImage: async (params: GenerateImageToImageRequest): Promise<GenerateResponse> => {
-    const formData = new FormData()
-    formData.append('prompt', params.prompt)
-    formData.append('image', params.image)
-    if (params.model) formData.append('model', params.model)
-    if (params.size) formData.append('size', params.size)
-    if (params.n) formData.append('n', params.n.toString())
-
-    const response = await api.post('/generate/image-to-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      timeout: 120000 // AI生成需要更长时间，设置120秒（2分钟）超时
+    // 图生图的去重key使用prompt和文件大小总和
+    const imageSizes = params.images?.reduce((sum, img) => sum + (img instanceof File ? img.size : 0), 0) || 0
+    const dedupKey = generateDedupKey('image-to-image', {
+      prompt: params.prompt,
+      model: params.model,
+      imageSizes
     })
-    return response.data
+    
+    return withDedup(dedupKey, async () => {
+      const formData = new FormData()
+      formData.append('prompt', params.prompt)
+      if (params.model) formData.append('model', params.model)
+      
+      // 支持多图上传
+      if (params.images && params.images.length > 0) {
+        params.images.forEach(image => {
+          formData.append('images[]', image)
+        })
+      } else if (params.image) {
+        // 向后兼容单图
+        formData.append('images[]', params.image)
+      }
+
+      const response = await api.post('/generate/image-to-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        timeout: 120000 // AI生成需要更长时间，设置120秒（2分钟）超时
+      })
+      return response.data
+    })
   },
 
   // 获取可用模型 - 带缓存

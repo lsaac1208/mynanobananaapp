@@ -7,6 +7,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AnimatedBackground: typeof import('./src/components/common/AnimatedBackground.vue')['default']
+    Button: typeof import('./src/components/common/Button.vue')['default']
+    CTASection: typeof import('./src/components/home/CTASection.vue')['default']
     DynamicMenu: typeof import('./src/components/DynamicMenu.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
@@ -42,12 +45,18 @@ declare module 'vue' {
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
+    ElSkeletonItem: typeof import('element-plus/es')['ElSkeletonItem']
     ElSpace: typeof import('element-plus/es')['ElSpace']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    FeaturesSection: typeof import('./src/components/home/FeaturesSection.vue')['default']
+    GeneratedResults: typeof import('./src/components/generate/GeneratedResults.vue')['default']
+    GenerateModeSelector: typeof import('./src/components/generate/GenerateModeSelector.vue')['default']
+    GenerationProgress: typeof import('./src/components/generate/GenerationProgress.vue')['default']
+    HeroSection: typeof import('./src/components/home/HeroSection.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     UserInfo: typeof import('./src/components/UserInfo.vue')['default']
