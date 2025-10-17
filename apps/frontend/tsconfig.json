@@ -21,5 +21,10 @@
       "vite/client",
       "vitest/globals"
     ]
-  }
+  },
+  "references": [
+    {
+      "path": "../../packages/shared-types"
+    }
+  ]
 }
